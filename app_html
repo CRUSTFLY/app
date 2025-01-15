@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaaS Mannequin 3D</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+  <form id="dimensionsForm">
+    <label>Sexe:</label>
+    <select id="sexe" required>
+      <option value="homme">Homme</option>
+      <option value="femme">Femme</option>
+    </select><br>
+    <label>Taille (cm):</label>
+    <input type="number" id="taille" required><br>
+    <label>Tour de hanches (cm):</label>
+    <input type="number" id="hanches" required><br>
+    <label>Tour de poitrine (cm):</label>
+    <input type="number" id="poitrine" required><br>
+    <label>Tour de cuisses (cm):</label>
+    <input type="number" id="cuisses" required><br>
+    <button type="submit">Générer</button>
+  </form>
+
+  <div id="viewer" style="width: 100%; height: 500px;"></div>
+
+  <script>
+    document.getElementById('dimensionsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        sexe: document.getElementById('sexe').value,
+        taille: document.getElementById('taille').value,
+        hanches: document.getElementById('hanches').value,
+        poitrine: document.getElementById('poitrine').value,
+        cuisses: document.getElementById('cuisses').value,
+      };
+
+      try {
+        const response = await axios.post('http://localhost:5000/generate', data, { responseType: 'blob' });
+        const url = URL.createObjectURL(response.data);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('viewer').appendChild(renderer.domElement);
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(url, (gltf) => {
+          scene.add(gltf.scene);
+          animate();
+        });
+
+        camera.position.z = 5;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+      }
+    });
+  </script>
+</body>
+</html>
