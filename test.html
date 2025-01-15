@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Télécharger et afficher une image 3D avec la souris</title>
+    <title>Téléchargement et affichage en 3D</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,7 +73,7 @@
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         renderer = new THREE.WebGLRenderer();
-        renderer.setSize(500, 500);
+        renderer.setSize(500, 500);  // Taille de la zone de rendu 3D
         document.getElementById('threeDContainer').appendChild(renderer.domElement);
 
         // Ajouter un éclairage
@@ -121,6 +121,10 @@
                 // Appliquer la texture au plan
                 mesh.material.map = texture;
                 imageLoaded = true;
+
+                // Redimensionner le plan en fonction de l'image
+                const aspectRatio = img.width / img.height;
+                mesh.scale.set(aspectRatio, 1, 1);
             };
         };
 
