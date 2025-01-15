@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Télécharger et afficher en 3D</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        .left {
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .right {
+            width: 45%;
+            height: 500px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Left section (Upload area) -->
+    <div class="left">
+        <h2>Téléchargez une photo</h2>
+        <input type="file" id="fileInput" accept="image/*" onchange="loadTexture()">
+        <label for="fileInput">Choisir une image</label>
+    </div>
+
+    <!-- Right section (3D Image display) -->
+    <div class="right" id="threeDContainer"></div>
+</div>
+
+<!-- Include Three.js -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+
+<script>
+    let scene, camera, renderer, cube, textureLoader;
+
+    // Initialiser la scène Three.js
+    function init3DScene() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(500, 500);
+        document.getElementById('threeDContainer').appendChild(renderer.domElement);
+
+        // Créer un cube 3D
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.z = 5;
+
+        // Ajouter l'animation
+        animate();
+    }
+
+    // Fonction d'animation
+    function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        renderer.render(scene, camera);
+    }
+
+    // Fonction pour charger la texture de l'image téléchargée
+    function loadTexture() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const texture = new THREE.TextureLoader().load(event.target.result);
+                cube.material = new THREE.MeshBasicMaterial({ map: texture });
+                cube.material.needsUpdate = true; // Assurez-vous que le matériau est mis à jour
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Initialisation de la scène 3D
+    init3DScene();
+</script>
+
+</body>
+</html>
