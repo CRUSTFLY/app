@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Téléchargement et Affichage 3D avec Détourage</title>
+    <title>Télécharger et afficher une image 3D avec la souris</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,16 +60,15 @@
     <div class="right" id="threeDContainer"></div>
 </div>
 
-<!-- Include Three.js and Body-Pix -->
+<!-- Include Three.js and OrbitControls -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.6"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    let scene, camera, renderer, mesh, textureLoader, bodyPixModel;
-    let detectedImage;
+    let scene, camera, renderer, texture, mesh, controls;
+    let imageLoaded = false;
 
-    // Initialiser la scène Three.js
+    // Initialisation de la scène Three.js
     function init3DScene() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -77,71 +76,58 @@
         renderer.setSize(500, 500);
         document.getElementById('threeDContainer').appendChild(renderer.domElement);
 
-        // Créer un plan 3D pour appliquer la texture
-        const geometry = new THREE.PlaneGeometry(3, 5);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
-        mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+        // Ajouter un éclairage
+        const light = new THREE.AmbientLight(0xffffff); // Lumière ambiante
+        scene.add(light);
 
         camera.position.z = 5;
 
-        // Ajouter l'animation
+        // Ajouter les contrôles de la souris pour la rotation horizontale
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = false; // Désactiver le zoom
+        controls.enableRotate = true; // Activer la rotation avec la souris
+        controls.enablePan = false; // Désactiver le déplacement de la caméra
+
+        // Créer un plan pour afficher l'image
+        const geometry = new THREE.PlaneGeometry(3, 5); // Largeur et hauteur du plan 3D
+        const material = new THREE.MeshBasicMaterial({ map: null });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
         animate();
     }
 
-    // Fonction d'animation (rotation horizontale)
+    // Fonction d'animation (rotation de l'image avec la souris)
     function animate() {
         requestAnimationFrame(animate);
-        mesh.rotation.y += 0.01; // Rotation horizontale
+        controls.update(); // Mise à jour des contrôles de la souris
         renderer.render(scene, camera);
     }
 
-    // Charger le modèle Body-Pix
-    async function loadBodyPixModel() {
-        bodyPixModel = await bodyPix.load();
-    }
-
     // Fonction pour gérer le fichier téléchargé
-    async function handleFile() {
+    function handleFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
         const reader = new FileReader();
 
-        reader.onload = async function(event) {
+        reader.onload = function(event) {
             const img = new Image();
             img.src = event.target.result;
-            img.onload = async () => {
-                // Appliquer Body-Pix pour détourer
-                const segmentation = await bodyPixModel.segmentPerson(img);
-                const mask = bodyPix.toMask(segmentation);
-                detectedImage = createImageFromMask(img, mask);
-                applyTextureTo3DObject(detectedImage);
+            img.onload = function() {
+                // Créer une texture à partir de l'image
+                texture = new THREE.Texture(img);
+                texture.needsUpdate = true;
+
+                // Appliquer la texture au plan
+                mesh.material.map = texture;
+                imageLoaded = true;
             };
         };
 
         reader.readAsDataURL(file);
     }
 
-    // Créer une image à partir du masque détourné
-    function createImageFromMask(image, mask) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        ctx.drawImage(image, 0, 0);
-        ctx.putImageData(mask, 0, 0);
-        return canvas.toDataURL();
-    }
-
-    // Appliquer la texture à l'objet 3D
-    function applyTextureTo3DObject(textureURL) {
-        const texture = new THREE.TextureLoader().load(textureURL);
-        mesh.material.map = texture;
-        mesh.material.needsUpdate = true;
-    }
-
-    // Initialisation de la scène et chargement du modèle Body-Pix
-    loadBodyPixModel();
+    // Initialisation de la scène 3D
     init3DScene();
 </script>
 
