@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Télécharger et afficher en 3D</title>
+    <title>Téléchargement et Affichage 3D avec Détourage</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -52,7 +52,7 @@
     <!-- Left section (Upload area) -->
     <div class="left">
         <h2>Téléchargez une photo</h2>
-        <input type="file" id="fileInput" accept="image/*" onchange="loadTexture()">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile()">
         <label for="fileInput">Choisir une image</label>
     </div>
 
@@ -60,11 +60,14 @@
     <div class="right" id="threeDContainer"></div>
 </div>
 
-<!-- Include Three.js -->
+<!-- Include Three.js and Body-Pix -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.6"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
 
 <script>
-    let scene, camera, renderer, cube, textureLoader;
+    let scene, camera, renderer, mesh, textureLoader, bodyPixModel;
+    let detectedImage;
 
     // Initialiser la scène Three.js
     function init3DScene() {
@@ -74,11 +77,11 @@
         renderer.setSize(500, 500);
         document.getElementById('threeDContainer').appendChild(renderer.domElement);
 
-        // Créer un cube 3D
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+        // Créer un plan 3D pour appliquer la texture
+        const geometry = new THREE.PlaneGeometry(3, 5);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
 
         camera.position.z = 5;
 
@@ -86,31 +89,59 @@
         animate();
     }
 
-    // Fonction d'animation
+    // Fonction d'animation (rotation horizontale)
     function animate() {
         requestAnimationFrame(animate);
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
+        mesh.rotation.y += 0.01; // Rotation horizontale
         renderer.render(scene, camera);
     }
 
-    // Fonction pour charger la texture de l'image téléchargée
-    function loadTexture() {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const texture = new THREE.TextureLoader().load(event.target.result);
-                cube.material = new THREE.MeshBasicMaterial({ map: texture });
-                cube.material.needsUpdate = true; // Assurez-vous que le matériau est mis à jour
-            };
-            reader.readAsDataURL(file);
-        }
+    // Charger le modèle Body-Pix
+    async function loadBodyPixModel() {
+        bodyPixModel = await bodyPix.load();
     }
 
-    // Initialisation de la scène 3D
+    // Fonction pour gérer le fichier téléchargé
+    async function handleFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function(event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = async () => {
+                // Appliquer Body-Pix pour détourer
+                const segmentation = await bodyPixModel.segmentPerson(img);
+                const mask = bodyPix.toMask(segmentation);
+                detectedImage = createImageFromMask(img, mask);
+                applyTextureTo3DObject(detectedImage);
+            };
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    // Créer une image à partir du masque détourné
+    function createImageFromMask(image, mask) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0);
+        ctx.putImageData(mask, 0, 0);
+        return canvas.toDataURL();
+    }
+
+    // Appliquer la texture à l'objet 3D
+    function applyTextureTo3DObject(textureURL) {
+        const texture = new THREE.TextureLoader().load(textureURL);
+        mesh.material.map = texture;
+        mesh.material.needsUpdate = true;
+    }
+
+    // Initialisation de la scène et chargement du modèle Body-Pix
+    loadBodyPixModel();
     init3DScene();
 </script>
 
