@@ -121,10 +121,10 @@
         const ctx = outputCanvas.getContext('2d');
         const fileInput = document.getElementById('fileInput');
 
-        // Chargement du modèle BodyPix
-        ml5.bodyPix().then(model => {
-            bodyPixModel = model;
-            console.log("Modèle BodyPix chargé avec succès !");
+        // Charger le modèle BodyPix avec ml5
+        ml5.bodyPix().modelReady().then(() => {
+            bodyPixModel = ml5.bodyPix();
+            console.log("BodyPix modèle chargé avec succès !");
         }).catch(err => {
             console.error("Erreur lors du chargement du modèle BodyPix :", err);
         });
