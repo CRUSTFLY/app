@@ -170,6 +170,9 @@
         try {
             // Appliquer la segmentation pour détecter la personne
             const segmentation = await bodyPixModel.segment(outputCanvas);
+            console.log("Segmentation result: ", segmentation);
+            console.log("Segmentation segmentationMask result: ", segmentation.segmentationMask);
+            console.log("Segmentation Mask result: ", segmentation.mask);
 
             // Vérification de la segmentation
             if (segmentation && segmentation.segmentationMask) {
