@@ -160,7 +160,10 @@ function processImage(image) {
     const data = imageData.data;
     console.log("Pixels de l'image récupérés.");
 
-    // Suppression de l'arrière-plan basique (par exemple, rendre transparent les pixels proches d'une couleur spécifique)
+    // Couleur de fond à rendre transparent (ici rgb(0, 255, 0))
+    const bgColor = { r: 0, g: 255, b: 0 };
+
+    // Suppression de l'arrière-plan spécifique (rgb(0, 255, 0)) et rendre transparent ces pixels
     let transparentPixels = 0;
     for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
@@ -168,9 +171,9 @@ function processImage(image) {
         const b = data[i + 2];
         const a = data[i + 3];
 
-        // Condition pour supprimer un arrière-plan (ex: pixels avec une couleur dominante de fond, ici une couleur proche du blanc)
-        if (r > 0 && g > 230 && b > 0 && a > 0) {
-            // Rendre transparent le pixel
+        // Vérification si le pixel est exactement de la couleur de fond (rgb(0, 255, 0))
+        if (r === bgColor.r && g === bgColor.g && b === bgColor.b) {
+            // Rendre transparent le pixel en ajustant le canal alpha à 0
             data[i + 3] = 0; // alpha
             transparentPixels++;
         }
