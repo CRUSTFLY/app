@@ -121,20 +121,28 @@
         const ctx = outputCanvas.getContext('2d');
         const fileInput = document.getElementById('fileInput');
 
-        // Fonction asynchrone pour charger le modèle
+        // Fonction pour charger le modèle BodyPix
         async function loadModel() {
-            const bodyPixModel = await ml5.bodyPix.load();
-            console.log("BodyPix modèle chargé avec succès !");
+            try {
+                bodyPixModel = await ml5.bodyPix.load();
+                console.log("BodyPix modèle chargé avec succès !");
+            } catch (err) {
+                console.error("Erreur lors du chargement du modèle BodyPix :", err);
+            }
         }
+
+        // Appeler la fonction pour charger le modèle
+        loadModel();
     
         // Gestion du téléchargement de l'image
         fileInput.addEventListener('change', event => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = () => {
+                    reader.onload = async function(e) {
+                        const img = new Image();
+                        img.src = e.target.result;
+                    img.onload = async () => {                        
                         // Vérifiez que l'image est correctement chargée
                         console.log("Image chargée :", img.width, img.height);
 
@@ -146,13 +154,15 @@
                         ctx.drawImage(img, 0, 0, img.width, img.height);
                         console.log("Image dessinée dans le canvas");
 
-                        // Appliquer le modèle BodyPix pour enlever l'arrière-plan
+                        // Appliquer BodyPix pour segmenter l'image
                         if (bodyPixModel) {
-                            bodyPixModel.segment(img).then(segmentation => {
+                            try {
+                                // Effectuer la segmentation avec le modèle BodyPix
+                                const segmentation = await bodyPixModel.segment(img);
                                 const mask = segmentation.data;
                                 const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
 
-                                // Remplacer les pixels qui ne correspondent pas au corps humain par de la transparence
+                                // Appliquer la transparence
                                 for (let i = 0; i < mask.length; i++) {
                                     const isPerson = mask[i];
                                     const offset = i * 4;
@@ -161,21 +171,23 @@
                                     }
                                 }
 
-                                // Remettre l'image traitée dans le canvas
+                                // Remettre les données dans le canvas
                                 ctx.putImageData(imageData, 0, 0);
                                 console.log("Arrière-plan supprimé avec BodyPix");
-                            }).catch(err => {
+                            } catch (err) {
                                 console.error("Erreur lors de la segmentation :", err);
-                            });
+                            }
                         } else {
-                            console.error("Modèle BodyPix non encore chargé.");
+                            console.error("Modèle BodyPix non chargé.");
                         }
                     };
+
                     img.onerror = () => {
                         console.error("Erreur lors du chargement de l'image.");
                     };
-                    img.src = e.target.result;
                 };
+
+                // Lire le fichier en tant qu'URL de données
                 reader.readAsDataURL(file);
             } else {
                 console.log("Aucun fichier sélectionné.");
