@@ -105,40 +105,6 @@
         <label for="fileInput">Choisir une image</label>
     </div>
     
-    <div id="imagePreview">
-    <script>
-    function previewImage() {
-        const fileInput = document.getElementById('fileInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const file = fileInput.files[0];
-
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                const imgElement = document.createElement('img');
-                imgElement.src = event.target.result;
-                imagePreview.innerHTML = ''; // Clear previous content
-                imagePreview.appendChild(imgElement);
-            };
-            
-            reader.readAsDataURL(file);
-        } else {
-            imagePreview.innerHTML = '<p>Aucune image téléchargée</p>';
-        }
-    }
-    </script>  
-    </div>
-
-    <!-- Right section (Image preview) -->
-<div class="right">
-    <h2>Aperçu de l'image</h2>
-    <div id="imagePreviewContainer">
-        <!-- Le canvas pour l'aperçu -->
-        <canvas id="outputCanvas"></canvas>
-    </div>
-</div>
-
     <script>
         let bodyPixModel;
 
@@ -150,7 +116,6 @@
             })
             .catch(error => console.error("Erreur de chargement du modèle BodyPix:", error));
 
-        const fileInput = document.getElementById('fileInput');
         const fileInput = document.getElementById('fileInput');
         const outputCanvas = document.getElementById('outputCanvas');
         const ctx = outputCanvas.getContext('2d');
