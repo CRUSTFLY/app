@@ -123,17 +123,9 @@
 
         // Fonction asynchrone pour charger le modèle
         async function loadModel() {
-            try {
-                // Charger le modèle BodyPix de manière asynchrone
-                    bodyPixModel = await ml5.bodyPix.load();
-                    console.log("BodyPix modèle chargé avec succès !");
-                } catch (err) {
-                console.error("Erreur lors du chargement du modèle BodyPix :", err);
-                }
-            }
-
-        // Appeler la fonction pour charger le modèle
-            loadModel();
+            const bodyPixModel = await ml5.bodyPix.load();
+            console.log("BodyPix modèle chargé avec succès !");
+        }
     
         // Gestion du téléchargement de l'image
         fileInput.addEventListener('change', event => {
