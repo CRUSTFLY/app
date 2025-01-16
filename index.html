@@ -121,15 +121,11 @@
     const ctx = outputCanvas.getContext('2d');
     const fileInput = document.getElementById('fileInput');
 
-    // Fonction asynchrone pour charger le modèle BodyPix
-    async function loadModel() {
-        try {
-            console.log("Chargement du modèle BodyPix...");
-            bodyPixModel = await ml5.bodyPix.load();
-            console.log("BodyPix modèle chargé avec succès !");
-        } catch (err) {
-            console.error("Erreur lors du chargement du modèle BodyPix :", err);
-        }
+    // Fonction pour charger le modèle BodyPix
+    function loadModel() {
+        console.log("Chargement du modèle BodyPix...");
+        bodyPixModel = ml5.bodyPix();
+        console.log("BodyPix modèle chargé avec succès !");
     }
 
     // Charger le modèle BodyPix dès que la page est prête
