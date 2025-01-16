@@ -114,20 +114,20 @@
             <canvas id="outputCanvas"></canvas>
         </div>
     
-    <script>
+<script>
+        // Déclaration du modèle BodyPix
         let bodyPixModel;
-
-        // Charger le modèle BodyPix
-        ml5.bodyPix()
-            .then(model => {
-                bodyPixModel = model;
-                console.log("BodyPix model chargé");
-            })
-            .catch(error => console.error("Erreur de chargement du modèle BodyPix:", error));
-
-        const fileInput = document.getElementById('fileInput');
         const outputCanvas = document.getElementById('outputCanvas');
         const ctx = outputCanvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+
+        // Chargement du modèle BodyPix
+        ml5.bodyPix().then(model => {
+            bodyPixModel = model;
+            console.log("Modèle BodyPix chargé avec succès !");
+        }).catch(err => {
+            console.error("Erreur lors du chargement du modèle BodyPix :", err);
+        });
 
         // Gestion du téléchargement de l'image
         fileInput.addEventListener('change', event => {
@@ -137,53 +137,54 @@
                 reader.onload = function(e) {
                     const img = new Image();
                     img.onload = () => {
+                        // Vérifiez que l'image est correctement chargée
                         console.log("Image chargée :", img.width, img.height);
-                        
-                        // Ajuste le canvas à la taille de l'image
+
+                        // Ajuster la taille du canvas à l'image téléchargée
                         outputCanvas.width = img.width;
                         outputCanvas.height = img.height;
 
-                        // Dessine l'image dans le canvas
+                        // Dessiner l'image sur le canvas
                         ctx.drawImage(img, 0, 0, img.width, img.height);
                         console.log("Image dessinée dans le canvas");
+
+                        // Appliquer le modèle BodyPix pour enlever l'arrière-plan
+                        if (bodyPixModel) {
+                            bodyPixModel.segment(img).then(segmentation => {
+                                const mask = segmentation.data;
+                                const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+
+                                // Remplacer les pixels qui ne correspondent pas au corps humain par de la transparence
+                                for (let i = 0; i < mask.length; i++) {
+                                    const isPerson = mask[i];
+                                    const offset = i * 4;
+                                    if (!isPerson) {
+                                        imageData.data[offset + 3] = 0; // Rendre transparent
+                                    }
+                                }
+
+                                // Remettre l'image traitée dans le canvas
+                                ctx.putImageData(imageData, 0, 0);
+                                console.log("Arrière-plan supprimé avec BodyPix");
+                            }).catch(err => {
+                                console.error("Erreur lors de la segmentation :", err);
+                            });
+                        } else {
+                            console.error("Modèle BodyPix non encore chargé.");
+                        }
                     };
-                    img.onerror = () => console.error("Erreur lors du chargement de l'image");
+                    img.onerror = () => {
+                        console.error("Erreur lors du chargement de l'image.");
+                    };
                     img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
+            } else {
+                console.log("Aucun fichier sélectionné.");
             }
         });
-
-        // Une fois l'image chargée, appliquez BodyPix pour supprimer l'arrière-plan
-        fileInput.onload = () => {
-            if (!bodyPixModel) {
-                console.error("Modèle BodyPix non encore prêt.");
-                return;
-            }
-
-            // Ajuster la taille du canvas à l'image
-            outputCanvas.width = fileInput.width;
-            outputCanvas.height = fileInput.height;
-
-            // Segmenter l'image pour supprimer l'arrière-plan
-            bodyPixModel.segment(fileInput)
-                .then(segmentation => {
-                    const { data: mask } = segmentation;
-                    const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-
-                    for (let i = 0; i < mask.length; i++) {
-                        const isPerson = mask[i];
-                        const offset = i * 4;
-                        if (!isPerson) {
-                            imageData.data[offset + 3] = 0; // Rendre transparent
-                        }
-                    }
-
-                    ctx.putImageData(imageData, 0, 0);
-                })
-                .catch(error => console.error("Erreur lors de la segmentation:", error));
-        };
     </script>
+        
         </div>
 </div>
 </body>
