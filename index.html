@@ -165,6 +165,9 @@
                     ctx.drawImage(img, 0, 0, img.width, img.height);
                     console.log("Image dessinée dans le canvas");
 
+                    // Ajouter une bordure pour voir si le canvas est visible
+                    outputCanvas.style.border = '2px solid red';
+
                     // Masquer l'image si elle est dans le DOM (si nécessaire)
                     img.style.display = 'none'; // Masquer l'image HTML (cacher l'élément img dans le DOM)
 
