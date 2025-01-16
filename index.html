@@ -155,6 +155,9 @@ reader.onload = async function(e) {
         ctx.drawImage(img, 0, 0, img.width, img.height);
         console.log("Image dessinée dans le canvas");
 
+	// Masquer l'image si elle est dans le DOM (si nécessaire)
+        img.style.display = 'none'; // Masquer l'image HTML (cacher l'élément img dans le DOM)
+
         // Vérifier si le modèle est chargé avant de procéder à la segmentation
         if (bodyPixModel) {
             console.log("Modèle BodyPix chargé. Début de la segmentation...");
@@ -196,9 +199,6 @@ reader.onload = async function(e) {
             console.error("Modèle BodyPix non encore chargé.");
         }
                 };
-                // Ajouter l'image au document, si nécessaire (ex: appendChild)
-                img.hide(); // Cache l'image HTML
-            };
 
             // Lire le fichier image en tant qu'URL de données
             reader.readAsDataURL(file);
