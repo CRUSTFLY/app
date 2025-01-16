@@ -121,7 +121,6 @@
     const outputCanvas = document.createElement('canvas');
     const ctx = outputCanvas.getContext('2d');
     const fileInput = document.getElementById('fileInput');
-    let img; // Image globale
 
     // Fonction pour charger le modèle BodyPix
     function loadModel() {
@@ -139,60 +138,70 @@
         if (file) {
             const reader = new FileReader();
 
-            reader.onload = async function(e) {
-                // Créer une nouvelle image avec p5.js
-                img = new p5.Image();
-                img = loadImage(e.target.result, async () => {
-                    console.log("Image chargée avec p5.js");
+	let img; // Déclarer img globalement une seule fois
 
-                    // Ajuster la taille du canvas à l'image
-                    outputCanvas.width = img.width;
-                    outputCanvas.height = img.height;
+	reader.onload = async function(e) {
+    		img = new Image(); // Crée une nouvelle image
+    		img.src = e.target.result; // Définit l'image source à partir du fichier téléchargé
 
-                    // Dessiner l'image dans le canvas avec p5.js
-                    ctx.drawImage(img.canvas, 0, 0, img.width, img.height);
-                    console.log("Image dessinée dans le canvas");
+    	img.onload = async () => {
+        	console.log("Image chargée avec JavaScript");
 
-                    // Vérifier si le modèle est chargé avant de procéder à la segmentation
-                    if (bodyPixModel) {
-                        console.log("Modèle BodyPix chargé. Début de la segmentation...");
-                        try {
-                            // Appliquer la segmentation pour détecter la personne
-                            const segmentation = await bodyPixModel.segment(img.canvas);
-                            console.log("Segmentation terminée.");
+        // Ajuster la taille du canvas à l'image
+        outputCanvas.width = img.width;
+        outputCanvas.height = img.height;
 
-                            // Appliquer un masque sur les zones non détectées (arrière-plan)
-                            const mask = segmentation.data;
-                            const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-                            console.log("ImageData récupérée du canvas.");
+        // Dessiner l'image dans le canvas avec le contexte 2D
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        console.log("Image dessinée dans le canvas");
 
-                            // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
-                            for (let i = 0; i < mask.length; i++) {
-                                const isPerson = mask[i]; // 1 = personne, 0 = arrière-plan
-                                const offset = i * 4; // Chaque pixel a 4 valeurs (R, G, B, A)
+	// Masquer l'image si elle est dans le DOM (si nécessaire)
+        img.style.display = 'none'; // Masquer l'image HTML (cacher l'élément img dans le DOM)
 
-                                if (!isPerson) {
-                                    // Rendre les pixels de l'arrière-plan transparents
-                                    imageData.data[offset + 3] = 0; // Modifie la valeur alpha (transparence)
-                                }
-                            }
+        // Vérifier si le modèle est chargé avant de procéder à la segmentation
+        if (bodyPixModel) {
+            console.log("Modèle BodyPix chargé. Début de la segmentation...");
+            try {
+                // Appliquer la segmentation pour détecter la personne
+                const segmentation = await bodyPixModel.segment(outputCanvas);
+                
+                // Vérification de la segmentation
+                if (segmentation && segmentation.data) {
+                    console.log("Données de segmentation disponibles.");
 
-                            // Remettre l'image traitée dans le canvas
-                            ctx.putImageData(imageData, 0, 0);
-                            console.log("Arrière-plan supprimé avec BodyPix");
-                        } catch (err) {
-                            console.error("Erreur lors de la segmentation avec BodyPix :", err);
+                    // Appliquer un masque sur les zones non détectées (arrière-plan)
+                    const mask = segmentation.data;
+                    const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+                    console.log("ImageData récupérée du canvas.");
+
+                    // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
+                    for (let i = 0; i < mask.length; i++) {
+                        const isPerson = mask[i]; // 1 = personne, 0 = arrière-plan
+                        const offset = i * 4; // Chaque pixel a 4 valeurs (R, G, B, A)
+
+                        if (!isPerson) {
+                            // Rendre les pixels de l'arrière-plan transparents
+                            imageData.data[offset + 3] = 0; // Modifie la valeur alpha (transparence)
                         }
-                    } else {
-                        console.error("Modèle BodyPix non encore chargé.");
                     }
-                });
-            };
+				 
+
+                    // Remettre l'image traitée dans le canvas
+                    ctx.putImageData(imageData, 0, 0);
+                    console.log("Arrière-plan supprimé avec BodyPix");
+                } else {
+                    console.error("Aucune donnée de segmentation valide trouvée.");
+                }
+            } catch (err) {
+                console.error("Erreur lors de la segmentation avec BodyPix :", err);
+            }
+        } else {
+            console.error("Modèle BodyPix non encore chargé.");
+        }
+                };
 
             // Lire le fichier image en tant qu'URL de données
             reader.readAsDataURL(file);
-        } else {
-            console.log("Aucun fichier sélectionné.");
         }
     });
 </script>
