@@ -138,8 +138,6 @@
         if (file) {
             const reader = new FileReader();
 
-	let img; // Déclarer img globalement une seule fois
-
 	reader.onload = async function(e) {
     		img = new Image(); // Crée une nouvelle image
     		img.src = e.target.result; // Définit l'image source à partir du fichier téléchargé
