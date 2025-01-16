@@ -146,14 +146,17 @@
     fileInput.addEventListener('change', async event => {
         const file = event.target.files[0];
         if (file) {
+            console.log("Fichier téléchargé:", file.name); // Log du nom du fichier téléchargé
             const reader = new FileReader();
 
             let img; // Déclarer img globalement une seule fois
 
             reader.onload = async function(e) {
+                console.log("Fichier chargé dans FileReader.");
                 img = new Image(); // Crée une nouvelle image
                 img.src = e.target.result; // Définit l'image source à partir du fichier téléchargé
 
+                // Ajout d'un écouteur d'événements pour l'image
                 img.onload = async () => {
                     console.log("Image chargée avec JavaScript");
 
@@ -212,9 +215,17 @@
                     }
                 };
 
+                img.onerror = (error) => {
+                    console.error("Erreur lors du chargement de l'image :", error);
+                };
+
                 // Lire le fichier image en tant qu'URL de données
                 reader.readAsDataURL(file);
-            }
+            };
+
+            reader.onerror = (error) => {
+                console.error("Erreur lors de la lecture du fichier avec FileReader :", error);
+            };
         }
     });
 </script>
