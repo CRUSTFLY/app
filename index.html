@@ -139,52 +139,55 @@
         if (file) {
             const reader = new FileReader();
 
-            reader.onload = async function(e) {
-                // Créer une image p5.js avec createImg
-                img = createImg(e.target.result, async () => {
-                    console.log("Image chargée avec p5.js");
+reader.onload = async function(e) {
+    // Créer une image native avec JavaScript
+    img = new Image();
+    img.src = e.target.result;
 
-                    // Ajuster la taille du canvas à l'image
-                    outputCanvas.width = img.width;
-                    outputCanvas.height = img.height;
+    img.onload = async () => {
+        console.log("Image chargée avec JavaScript");
 
-                    // Dessiner l'image dans le canvas avec p5.js
-                    ctx.drawImage(img.elt, 0, 0, img.width, img.height);
-                    console.log("Image dessinée dans le canvas");
+        // Ajuster la taille du canvas à l'image
+        outputCanvas.width = img.width;
+        outputCanvas.height = img.height;
 
-                    // Vérifier si le modèle est chargé avant de procéder à la segmentation
-                    if (bodyPixModel) {
-                        console.log("Modèle BodyPix chargé. Début de la segmentation...");
-                        try {
-                            // Appliquer la segmentation pour détecter la personne
-                            const segmentation = await bodyPixModel.segment(img.elt);
-                            console.log("Segmentation terminée.");
+        // Dessiner l'image dans le canvas avec le contexte 2D
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        console.log("Image dessinée dans le canvas");
 
-                            // Appliquer un masque sur les zones non détectées (arrière-plan)
-                            const mask = segmentation.data;
-                            const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-                            console.log("ImageData récupérée du canvas.");
+        // Vérifier si le modèle est chargé avant de procéder à la segmentation
+        if (bodyPixModel) {
+            console.log("Modèle BodyPix chargé. Début de la segmentation...");
+            try {
+                // Appliquer la segmentation pour détecter la personne
+                const segmentation = await bodyPixModel.segment(outputCanvas);
+                console.log("Segmentation terminée.");
 
-                            // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
-                            for (let i = 0; i < mask.length; i++) {
-                                const isPerson = mask[i]; // 1 = personne, 0 = arrière-plan
-                                const offset = i * 4; // Chaque pixel a 4 valeurs (R, G, B, A)
+                // Appliquer un masque sur les zones non détectées (arrière-plan)
+                const mask = segmentation.data;
+                const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+                console.log("ImageData récupérée du canvas.");
 
-                                if (!isPerson) {
-                                    // Rendre les pixels de l'arrière-plan transparents
-                                    imageData.data[offset + 3] = 0; // Modifie la valeur alpha (transparence)
-                                }
-                            }
+                // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
+                for (let i = 0; i < mask.length; i++) {
+                    const isPerson = mask[i]; // 1 = personne, 0 = arrière-plan
+                    const offset = i * 4; // Chaque pixel a 4 valeurs (R, G, B, A)
 
-                            // Remettre l'image traitée dans le canvas
-                            ctx.putImageData(imageData, 0, 0);
-                            console.log("Arrière-plan supprimé avec BodyPix");
-                        } catch (err) {
-                            console.error("Erreur lors de la segmentation avec BodyPix :", err);
-                        }
-                    } else {
-                        console.error("Modèle BodyPix non encore chargé.");
+                    if (!isPerson) {
+                        // Rendre les pixels de l'arrière-plan transparents
+                        imageData.data[offset + 3] = 0; // Modifie la valeur alpha (transparence)
                     }
+                }
+
+                // Remettre l'image traitée dans le canvas
+                ctx.putImageData(imageData, 0, 0);
+                console.log("Arrière-plan supprimé avec BodyPix");
+            } catch (err) {
+                console.error("Erreur lors de la segmentation avec BodyPix :", err);
+            }
+        } else {
+            console.error("Modèle BodyPix non encore chargé.");
+        }
                 });
                 // Ajouter l'image au document, si nécessaire (ex: appendChild)
                 img.hide(); // Cache l'image HTML
