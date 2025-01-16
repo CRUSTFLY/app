@@ -1,5 +1,6 @@
         const fileInput = document.getElementById('fileInput');
         const imageContainer = document.getElementById('imageContainer');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
         // Charger le modèle BodyPix
         async function loadModel() {
@@ -80,9 +81,6 @@
                 console.log('Aucun fichier sélectionné');
             }
         });
-
-        const fileInput = document.getElementById('fileInput');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
