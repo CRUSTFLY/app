@@ -120,6 +120,7 @@
     const outputCanvas = document.createElement('canvas');
     const ctx = outputCanvas.getContext('2d');
     const fileInput = document.getElementById('fileInput');
+    let img; // Image globale
 
     // Fonction pour charger le modèle BodyPix
     function loadModel() {
@@ -138,19 +139,17 @@
             const reader = new FileReader();
 
             reader.onload = async function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-
-                // Lorsque l'image est chargée
-                img.onload = async () => {
-                    console.log("Image chargée :", img.width, img.height);
+                // Créer une nouvelle image avec p5.js
+                img = new p5.Image();
+                img = loadImage(e.target.result, () => {
+                    console.log("Image chargée avec p5.js");
 
                     // Ajuster la taille du canvas à l'image
                     outputCanvas.width = img.width;
                     outputCanvas.height = img.height;
 
-                    // Dessiner l'image dans le canvas
-                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    // Dessiner l'image dans le canvas avec p5.js
+                    ctx.drawImage(img.canvas, 0, 0, img.width, img.height);
                     console.log("Image dessinée dans le canvas");
 
                     // Vérifier si le modèle est chargé avant de procéder à la segmentation
@@ -158,7 +157,7 @@
                         console.log("Modèle BodyPix chargé. Début de la segmentation...");
                         try {
                             // Appliquer la segmentation pour détecter la personne
-                            const segmentation = await bodyPixModel.segment(img);
+                            const segmentation = await bodyPixModel.segment(img.canvas);
                             console.log("Segmentation terminée.");
 
                             // Appliquer un masque sur les zones non détectées (arrière-plan)
@@ -186,11 +185,7 @@
                     } else {
                         console.error("Modèle BodyPix non encore chargé.");
                     }
-                };
-
-                img.onerror = () => {
-                    console.error("Erreur lors du chargement de l'image.");
-                };
+                });
             };
 
             // Lire le fichier image en tant qu'URL de données
