@@ -124,7 +124,7 @@
     // Fonction asynchrone pour charger le modèle BodyPix
     async function loadModel() {
         try {
-            // Charger le modèle BodyPix avec ml5
+            console.log("Chargement du modèle BodyPix...");
             bodyPixModel = await ml5.bodyPix.load();
             console.log("BodyPix modèle chargé avec succès !");
         } catch (err) {
@@ -159,13 +159,16 @@
 
                     // Vérifier si le modèle est chargé avant de procéder à la segmentation
                     if (bodyPixModel) {
+                        console.log("Modèle BodyPix chargé. Début de la segmentation...");
                         try {
                             // Appliquer la segmentation pour détecter la personne
                             const segmentation = await bodyPixModel.segment(img);
+                            console.log("Segmentation terminée.");
 
                             // Appliquer un masque sur les zones non détectées (arrière-plan)
                             const mask = segmentation.data;
                             const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+                            console.log("ImageData récupérée du canvas.");
 
                             // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
                             for (let i = 0; i < mask.length; i++) {
