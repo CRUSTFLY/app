@@ -103,6 +103,30 @@
         <h2>Téléchargez une photo</h2>
         <input type="file" id="fileInput" accept="image/*" onchange="previewImage()">
         <label for="fileInput">Choisir une image</label>
+
+        <script>
+    function previewImage() {
+        const fileInput = document.getElementById('fileInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const imgElement = document.createElement('img');
+                imgElement.src = event.target.result;
+                imagePreviewContainer.innerHTML = ''; // Clear previous content
+                imagePreviewContainer.appendChild(imgElement);
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            imagePreviewContainer.innerHTML = '<p>Aucune image téléchargée</p>';
+        }
+    }
+</script>
+        
     </div>
 
     <!-- Right section (Image preview) -->
