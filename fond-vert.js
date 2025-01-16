@@ -1,5 +1,4 @@
         const fileInput = document.getElementById('fileInput');
-        const imageContainer = document.getElementById('imageContainer');
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
         // Charger le modèle BodyPix
@@ -43,8 +42,8 @@
             ctx.putImageData(imageData, 0, 0);
 
             // Ajouter le résultat au container
-            imageContainer.innerHTML = '';
-            imageContainer.appendChild(canvas);
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.appendChild(canvas);
             console.log('Fond changé et image mise à jour');
         }
 
