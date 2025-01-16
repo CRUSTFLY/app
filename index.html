@@ -141,7 +141,7 @@
             reader.onload = async function(e) {
                 // Créer une nouvelle image avec p5.js
                 img = new p5.Image();
-                img = loadImage(e.target.result, () => {
+                img = loadImage(e.target.result, async () => {
                     console.log("Image chargée avec p5.js");
 
                     // Ajuster la taille du canvas à l'image
