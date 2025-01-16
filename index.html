@@ -169,7 +169,7 @@ function processImage(image) {
         const a = data[i + 3];
 
         // Condition pour supprimer un arrière-plan (ex: pixels avec une couleur dominante de fond, ici une couleur proche du blanc)
-        if (r > 0 && g > 230 && b > 0 && a > 100) {
+        if (r > 0 && g > 230 && b > 0 && a > 0) {
             // Rendre transparent le pixel
             data[i + 3] = 0; // alpha
             transparentPixels++;
