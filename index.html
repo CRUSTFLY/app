@@ -139,13 +139,17 @@
                 reader.onload = function(e) {
                     const img = new Image();
                     img.onload = () => {
+                        console.log("Image chargée :", img.width, img.height);
+                        
                         // Ajuste le canvas à la taille de l'image
                         outputCanvas.width = img.width;
                         outputCanvas.height = img.height;
 
                         // Dessine l'image dans le canvas
                         ctx.drawImage(img, 0, 0, img.width, img.height);
+                        console.log("Image dessinée dans le canvas");
                     };
+                    img.onerror = () => console.error("Erreur lors du chargement de l'image");
                     img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
