@@ -5,8 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Try Me App</title>
+    
     <!-- Lien vers le favicon -->
     <link rel="icon" href="favicon_tryme.ico" type="image/x-icon">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -93,28 +98,68 @@
     </div>
 </div>
 
-<script>
-    function previewImage() {
+
+    <canvas id="outputCanvas"></canvas>
+
+    <script>
+        let bodyPixModel;
+
+        // Charger le modèle BodyPix
+        ml5.bodyPix()
+            .then(model => {
+                bodyPixModel = model;
+                console.log("BodyPix model chargé");
+            })
+            .catch(error => console.error("Erreur de chargement du modèle BodyPix:", error));
+
         const fileInput = document.getElementById('fileInput');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-        const file = fileInput.files[0];
+        const fileInput = document.getElementById('fileInput');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const ctx = outputCanvas.getContext('2d');
 
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                const imgElement = document.createElement('img');
-                imgElement.src = event.target.result;
-                imagePreviewContainer.innerHTML = ''; // Clear previous content
-                imagePreviewContainer.appendChild(imgElement);
-            };
-            
-            reader.readAsDataURL(file);
-        } else {
-            imagePreviewContainer.innerHTML = '<p>Aucune image téléchargée</p>';
-        }
-    }
-</script>
+        // Gestion du téléchargement de l'image
+        fileInput.addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileInput.src = e.target.result;
+                    fileInput.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
+        // Une fois l'image chargée, appliquez BodyPix pour supprimer l'arrière-plan
+        fileInput.onload = () => {
+            if (!bodyPixModel) {
+                console.error("Modèle BodyPix non encore prêt.");
+                return;
+            }
+
+            // Ajuster la taille du canvas à l'image
+            outputCanvas.width = fileInput.width;
+            outputCanvas.height = fileInput.height;
+
+            // Segmenter l'image pour supprimer l'arrière-plan
+            bodyPixModel.segment(fileInput)
+                .then(segmentation => {
+                    const { data: mask } = segmentation;
+                    const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+
+                    for (let i = 0; i < mask.length; i++) {
+                        const isPerson = mask[i];
+                        const offset = i * 4;
+                        if (!isPerson) {
+                            imageData.data[offset + 3] = 0; // Rendre transparent
+                        }
+                    }
+
+                    ctx.putImageData(imageData, 0, 0);
+                })
+                .catch(error => console.error("Erreur lors de la segmentation:", error));
+        };
+    </script>
+    
 </body>
 </html>
