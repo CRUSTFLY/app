@@ -150,7 +150,10 @@ fileInput.addEventListener('change', async event => {
         console.log("Fichier téléchargé:", file.name); // Log du nom du fichier téléchargé
         const reader = new FileReader();
 
-        let img; // Déclarer img globalement une seule fois
+        // Ajoutons un log pour vérifier si on entre dans la fonction de lecture
+        reader.onloadstart = function () {
+            console.log("Lecture du fichier commencée...");
+        };
 
         reader.onload = async function(e) {
             console.log("Fichier chargé dans FileReader.");
@@ -170,9 +173,6 @@ fileInput.addEventListener('change', async event => {
 
                 // Ajouter une bordure pour voir si le canvas est visible
                 outputCanvas.style.border = '2px solid red';
-
-                // Masquer l'image si elle est dans le DOM (si nécessaire)
-                img.style.display = 'none'; // Masquer l'image HTML (cacher l'élément img dans le DOM)
 
                 // Vérifier si le modèle est chargé avant de procéder à la segmentation
                 if (bodyPixModel) {
