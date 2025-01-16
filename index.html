@@ -177,11 +177,11 @@
             console.log("Segmentation personMask result: ", segmentation.personMask);
 
             // Vérification de la segmentation
-            if (segmentation && segmentation.segmentationMask) {
+            if (segmentation && segmentation.personMask) {
                 console.log("Données de segmentation disponibles.");
 
                 // Appliquer un masque sur les zones non détectées (arrière-plan)
-                const mask = segmentation.segmentationMask; // Utiliser segmentationMask au lieu de segmentation.data
+                const mask = segmentation.personMask; // Utiliser personMask au lieu de segmentation.data
                 const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
                 console.log("ImageData récupérée du canvas.");
 
