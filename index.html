@@ -163,8 +163,6 @@
                         ctx.drawImage(img, 0, 0, img.width, img.height);
                         console.log("Image dessinée dans le canvas.");
 
-  // Fonction pour charger et segmenter l'image
-async function segmentImage() {
     // Vérifier si le modèle est chargé avant de procéder à la segmentation
     if (bodyPixModel) {
         console.log("Modèle BodyPix chargé. Début de la segmentation...");
@@ -205,7 +203,6 @@ async function segmentImage() {
     } else {
         console.error("Modèle BodyPix non encore chargé.");
     }
-}
                     };
 
                     img.onerror = (error) => {
