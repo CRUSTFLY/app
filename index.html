@@ -122,12 +122,10 @@
         const fileInput = document.getElementById('fileInput');
 
         // Charger le modèle BodyPix avec ml5
-        ml5.bodyPix().then(model => {
-            bodyPixModel = model;
+        async function loadModel() {
+            const bodyPixModel = await ml5.bodyPix.load();
             console.log("BodyPix modèle chargé avec succès !");
-        }).catch(err => {
-            console.error("Erreur lors du chargement du modèle BodyPix :", err);
-        });
+        }
 
         // Gestion du téléchargement de l'image
         fileInput.addEventListener('change', event => {
