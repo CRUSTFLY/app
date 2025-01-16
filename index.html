@@ -120,7 +120,7 @@
     
 <script>
         const fileInput = document.getElementById('fileInput');
-        const imageContainer = document.getElementById('imageContainer');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -137,12 +137,12 @@
                         console.log('Image chargée avec succès');
                         
                         // Change le fond d'écran en rgb(0,255,0)
-                        imageContainer.style.backgroundColor = 'rgb(0, 255, 0)';
+                        imagePreviewContainer.style.backgroundColor = 'rgb(0, 255, 0)';
                         console.log('Le fond d\'écran a été changé en rgb(0, 255, 0)');
                         
                         // Affiche l'image dans le container
-                        imageContainer.innerHTML = '';
-                        imageContainer.appendChild(img);
+                        imagePreviewContainer.innerHTML = '';
+                        imagePreviewContainer.appendChild(img);
                         console.log('L\'image a été ajoutée au container');
                     };
 
