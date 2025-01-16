@@ -138,14 +138,14 @@
         if (file) {
             const reader = new FileReader();
 
-let img; // Déclarer img globalement une seule fois
+	let img; // Déclarer img globalement une seule fois
 
-reader.onload = async function(e) {
-    img = new Image(); // Crée une nouvelle image
-    img.src = e.target.result; // Définit l'image source à partir du fichier téléchargé
+	reader.onload = async function(e) {
+    		img = new Image(); // Crée une nouvelle image
+    		img.src = e.target.result; // Définit l'image source à partir du fichier téléchargé
 
-    img.onload = async () => {
-        console.log("Image chargée avec JavaScript");
+    	img.onload = async () => {
+        	console.log("Image chargée avec JavaScript");
 
         // Ajuster la taille du canvas à l'image
         outputCanvas.width = img.width;
