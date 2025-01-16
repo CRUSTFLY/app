@@ -86,8 +86,11 @@
         }
 
 #outputCanvas {
+    border: 1px solid #ddd;
     max-width: 100%;
     max-height: 100%;
+    display: block; /* Assure que le canvas s'affiche */
+    margin: 0 auto;
 }
     </style>
 </head>
@@ -109,7 +112,8 @@
     <div class="right">
         <h2>Aperçu de l'image</h2>
         <div id="imagePreviewContainer">
-            <p>Aucune image téléchargée</p>
+            <!-- Le canvas pour afficher l'image -->
+            <canvas id="outputCanvas"></canvas>
         </div>
     
     <script>
@@ -133,8 +137,16 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    fileInput.src = e.target.result;
-                    fileInput.style.display = 'block';
+                    const img = new Image();
+                    img.onload = () => {
+                        // Ajuste le canvas à la taille de l'image
+                        outputCanvas.width = img.width;
+                        outputCanvas.height = img.height;
+
+                        // Dessine l'image dans le canvas
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
