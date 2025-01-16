@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Me App</title>
+    
+    <!-- Lien vers le favicon -->
+    <link rel="icon" href="favicon_tryme.ico" type="image/x-icon">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ml5@0.12.2/dist/ml5.js"></script>
+    <script src="p5.js"></script>
+    
+    <style>
+        
+        /* Pour la compatibilité avec Chrome, Firefox, Safari, etc. */
+* {
+    -webkit-text-size-adjust: 100%;  /* Ancien préfixe pour les navigateurs Webkit */
+    text-size-adjust: 100%;          /* Propriété standard pour tous les autres navigateurs */
+}
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column; /* Permet d'empiler les éléments verticalement */
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Espace sous le header */
+        }
+        header img {
+            max-width: 300px;
+            height: auto;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        .left {
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .right {
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background-color: #00A2E9;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        #imagePreviewContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            width: 100%;
+            height: 500px; /* Hauteur fixe pour le conteneur */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+#outputCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block; /* Assure que le canvas s'affiche */
+}
+    </style>
+</head>
+    
+<body>
+<header>
+    <img src="logo_tryme.PNG" alt="Logo du site">
+</header>
+    
+<div class="container">
+    <!-- Left section (Upload area) -->
+    <div class="left">
+        <h2>Téléchargez une photo</h2>
+        <input type="file" id="fileInput" accept="image/*">
+        <label for="fileInput">Choisir une image</label>
+    </div>
+
+        <!-- Right section (Image preview) -->
+    <div class="right">
+        <h2>Aperçu de l'image</h2>
+        <div id="imagePreviewContainer">
+            <!-- Le canvas pour afficher l'image -->
+            <canvas id="outputCanvas"></canvas>
+        </div>
+    
+<script>
+        // Déclare les variables globales
+        let bodyPixModel;
+        const outputCanvas = document.getElementById('outputCanvas');
+        const ctx = outputCanvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+
+        // Fonction pour charger le modèle BodyPix
+        function loadModel() {
+            console.log("Chargement du modèle BodyPix...");
+            bodyPixModel = ml5.bodyPix();
+            console.log("BodyPix modèle chargé avec succès !");
+        }
+
+        // Charger le modèle BodyPix dès que la page est prête
+        loadModel();
+
+        // Écouter les changements de fichier
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                console.log("Lecture du fichier commencée...");
+
+                reader.onload = function(e) {
+                    console.log("Fichier chargé dans FileReader.");
+
+                    const img = new Image();
+                    img.src = e.target.result;
+
+                    img.onload = async () => {
+                        console.log("Image chargée avec succès.");
+
+                        // Ajuster la taille du canvas à l'image
+                        outputCanvas.width = img.width;
+                        outputCanvas.height = img.height;
+
+                        // Dessiner l'image dans le canvas avec le contexte 2D
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+                        console.log("Image dessinée dans le canvas.");
+
+    // Vérifier si le modèle est chargé avant de procéder à la segmentation
+    if (bodyPixModel) {
+        console.log("Modèle BodyPix chargé. Début de la segmentation...");
+
+        try {
+            // Appliquer la segmentation pour détecter la personne
+            const segmentation = await bodyPixModel.segment(outputCanvas);
+            console.log("Segmentation result: ", segmentation);
+            console.log("Segmentation segmentationMask result: ", segmentation.segmentationMask);
+            console.log("Segmentation Mask result: ", segmentation.mask);
+            console.log("Segmentation data result: ", segmentation.data);
+            console.log("Segmentation personMask result: ", segmentation.personMask);
+
+            // Vérification de la segmentation
+            if (segmentation && segmentation.personMask) {
+                console.log("Données de segmentation disponibles.");
+
+                // Appliquer un masque sur les zones non détectées (arrière-plan)
+                const mask = segmentation.personMask; // Utiliser personMask au lieu de segmentation.data
+                const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+                console.log("ImageData récupérée du canvas.");
+
+                // Parcourir chaque pixel pour appliquer la transparence dans les zones non détectées
+                for (let i = 0; i < mask.length; i++) {
+                    const isPerson = mask[i]; // 1 = personne, 0 = arrière-plan
+                    const offset = i * 4; // Chaque pixel a 4 valeurs (R, G, B, A)
+
+                    if (!isPerson) {
+                        // Rendre les pixels de l'arrière-plan transparents
+                        imageData.data[offset + 3] = 0; // Modifie la valeur alpha (transparence)
+                    }
+                }
+
+                // Remettre l'image traitée dans le canvas
+                ctx.putImageData(imageData, 0, 0);
+                console.log("Arrière-plan supprimé avec BodyPix");
+            } else {
+                console.error("Aucune donnée de segmentation valide trouvée.");
+            }
+        } catch (err) {
+            console.error("Erreur lors de la segmentation avec BodyPix :", err);
+        }
+    } else {
+        console.error("Modèle BodyPix non encore chargé.");
+    }
+                    };
+
+                    img.onerror = (error) => {
+                        console.error("Erreur lors du chargement de l'image :", error);
+                    };
+                };
+
+                reader.onerror = (error) => {
+                    console.error("Erreur lors de la lecture du fichier avec FileReader :", error);
+                };
+
+                // Lire le fichier image en tant qu'URL de données
+                reader.readAsDataURL(file);
+            } else {
+                console.error("Aucun fichier sélectionné.");
+            }
+        });
+    </script>
+        
+    </div>
+</div>
+</body>
+</html>
