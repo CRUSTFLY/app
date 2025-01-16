@@ -139,9 +139,8 @@
             const reader = new FileReader();
 
             reader.onload = async function(e) {
-                // Créer une nouvelle image avec p5.js
-                img = new p5.Image();
-                img = loadImage(e.target.result, async () => {
+                // Créer une image p5.js avec createImg
+                img = createImg(e.target.result, () => {
                     console.log("Image chargée avec p5.js");
 
                     // Ajuster la taille du canvas à l'image
@@ -149,7 +148,7 @@
                     outputCanvas.height = img.height;
 
                     // Dessiner l'image dans le canvas avec p5.js
-                    ctx.drawImage(img.canvas, 0, 0, img.width, img.height);
+                    ctx.drawImage(img.elt, 0, 0, img.width, img.height);
                     console.log("Image dessinée dans le canvas");
 
                     // Vérifier si le modèle est chargé avant de procéder à la segmentation
@@ -157,7 +156,7 @@
                         console.log("Modèle BodyPix chargé. Début de la segmentation...");
                         try {
                             // Appliquer la segmentation pour détecter la personne
-                            const segmentation = await bodyPixModel.segment(img.canvas);
+                            const segmentation = await bodyPixModel.segment(img.elt);
                             console.log("Segmentation terminée.");
 
                             // Appliquer un masque sur les zones non détectées (arrière-plan)
@@ -186,6 +185,8 @@
                         console.error("Modèle BodyPix non encore chargé.");
                     }
                 });
+                // Ajouter l'image au document, si nécessaire (ex: appendChild)
+                img.hide(); // Cache l'image HTML
             };
 
             // Lire le fichier image en tant qu'URL de données
