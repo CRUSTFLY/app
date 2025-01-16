@@ -122,8 +122,8 @@
         const fileInput = document.getElementById('fileInput');
 
         // Charger le modèle BodyPix avec ml5
-        ml5.bodyPix().modelReady().then(() => {
-            bodyPixModel = ml5.bodyPix();
+        ml5.bodyPix().then(model => {
+            bodyPixModel = model;
             console.log("BodyPix modèle chargé avec succès !");
         }).catch(err => {
             console.error("Erreur lors du chargement du modèle BodyPix :", err);
@@ -185,7 +185,7 @@
         });
     </script>
         
-        </div>
+    </div>
 </div>
 </body>
 </html>
