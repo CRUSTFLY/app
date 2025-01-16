@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Me App</title>
+    
+    <!-- Lien vers le favicon -->
+    <link rel="icon" href="favicon_tryme.ico" type="image/x-icon">
+    
+    <style>
+        
+        /* Pour la compatibilité avec Chrome, Firefox, Safari, etc. */
+* {
+    -webkit-text-size-adjust: 100%;  /* Ancien préfixe pour les navigateurs Webkit */
+    text-size-adjust: 100%;          /* Propriété standard pour tous les autres navigateurs */
+}
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column; /* Permet d'empiler les éléments verticalement */
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Espace sous le header */
+        }
+        header img {
+            max-width: 300px;
+            height: auto;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        .left {
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .right {
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background-color: #00A2E9;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        #imagePreviewContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            width: 100%;
+            height: 500px; /* Hauteur fixe pour le conteneur */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+#outputCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block; /* Assure que le canvas s'affiche */
+}
+    </style>
+</head>
+    
+<body>
+<header>
+    <img src="logo_tryme.PNG" alt="Logo du site">
+</header>
+    
+<div class="container">
+    <!-- Left section (Upload area) -->
+    <div class="left">
+        <h2>Téléchargez une photo</h2>
+        <input type="file" id="fileInput" accept="image/*">
+        <label for="fileInput">Choisir une image</label>
+    </div>
+
+        <!-- Right section (Image preview) -->
+    <div class="right">
+        <h2>Aperçu de l'image</h2>
+        <div id="imagePreviewContainer">
+            <!-- Le canvas pour afficher l'image -->
+            <canvas id="canvas"></canvas>
+        </div>
+    
+<script>
+document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        console.log("Fichier sélectionné:", file.name);
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            console.log("Lecture du fichier terminée.");
+            const image = new Image();
+            image.onload = function () {
+                console.log("Image chargée dans l'objet Image.");
+                processImage(image);
+            };
+            image.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        console.log("Aucun fichier sélectionné.");
+    }
+}
+
+function processImage(image) {
+    console.log("Début du traitement de l'image...");
+    // Créer un objet canvas et son contexte
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    console.log(`Dimensions de l'image: ${canvas.width}x${canvas.height}`);
+
+    // Dessiner l'image sur le canvas
+    ctx.drawImage(image, 0, 0);
+    console.log("Image dessinée sur le canvas.");
+
+    // Obtenir les pixels de l'image
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    console.log("Pixels de l'image récupérés.");
+
+    // Couleur de fond à rendre transparent (ici rgb(0, 255, 0))
+    const bgColor = { r: 0, g: 255, b: 0 };
+
+    // Suppression de l'arrière-plan spécifique (rgb(0, 255, 0)) et rendre transparent ces pixels
+    let transparentPixels = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        // Vérification si le pixel est exactement de la couleur de fond (rgb(0, 255, 0))
+        if (r === bgColor.r && g === bgColor.g && b === bgColor.b) {
+            // Rendre transparent le pixel en ajustant le canal alpha à 0
+            data[i + 3] = 0; // alpha
+            transparentPixels++;
+        }
+    }
+
+    console.log(`Nombre de pixels rendus transparents: ${transparentPixels}`);
+
+    // Mettre à jour l'image avec les nouveaux pixels
+    ctx.putImageData(imageData, 0, 0);
+    console.log("Image mise à jour avec les pixels modifiés.");
+}
+    </script>
+        
+    </div>
+</div>
+</body>
+</html>
