@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Try Me App</title>
 	
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
     
     <!-- Lien vers le favicon -->
@@ -148,10 +148,13 @@ async function handleFileSelect(event) {
                 // Étape 3 : Supprimer le fond vert et le rendre transparent
                 const finalCanvas = makeBackgroundTransparent(segmentedCanvas);
 
-                // Ajouter le résultat au container
+                // Étape 4 : Redimensionner le canvas final pour le conteneur
+                const resizedCanvas = resizeCanvasToFit(finalCanvas, 500);
+
+                // Ajouter le résultat au conteneur
                 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
                 imagePreviewContainer.innerHTML = '';
-                imagePreviewContainer.appendChild(finalCanvas);
+                imagePreviewContainer.appendChild(resizedCanvas);
             };
 
             image.onerror = function () {
@@ -227,6 +230,22 @@ function makeBackgroundTransparent(canvas) {
     ctx.putImageData(imageData, 0, 0);
     console.log(`Nombre de pixels rendus transparents: ${transparentPixels}`);
     return canvas;
+}
+
+// Fonction pour redimensionner un canvas
+function resizeCanvasToFit(canvas, maxSize) {
+    const scale = Math.min(maxSize / canvas.width, maxSize / canvas.height);
+    const newWidth = Math.floor(canvas.width * scale);
+    const newHeight = Math.floor(canvas.height * scale);
+
+    const resizedCanvas = document.createElement('canvas');
+    resizedCanvas.width = newWidth;
+    resizedCanvas.height = newHeight;
+
+    const ctx = resizedCanvas.getContext('2d');
+    ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
+
+    return resizedCanvas;
 }
 	</script>
         
